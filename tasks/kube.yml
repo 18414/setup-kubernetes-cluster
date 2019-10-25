@@ -12,7 +12,7 @@
    
 - name: Add GPG key on all nodes
   apt_key: 
-    file: https://download.docker.com/linux/ubuntu/gpg 
+    url: https://download.docker.com/linux/ubuntu/gpg 
     state: present
 
 - name: add-apt-repository
@@ -35,7 +35,7 @@
    
 - name: Add an Apt signing key to a specific keyring file
   apt_key: 
-    file: https://packages.cloud.google.com/apt/doc/apt-key.gpg  
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg  
     state: present
      
 - name: Add kubernetes repo
