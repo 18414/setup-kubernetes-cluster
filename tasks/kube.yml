@@ -11,11 +11,15 @@
     - software-properties-common
    
 - name: Add GPG key on all nodes
-  command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+  apt_key: 
+    file: https://download.docker.com/linux/ubuntu/gpg 
+    state: present
+#  command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 
 - name: add-apt-repository
   apt_repository: 
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+    state: present
 
 - name: update repo 
   apt: 
@@ -29,4 +33,56 @@
     - docker-ce=17.03.2~ce-0~ubuntu-xenial
     - apt-transport-https 
     - curl
-    
+   
+- name: Add an Apt signing key to a specific keyring file
+  apt_key: 
+    file: https://packages.cloud.google.com/apt/doc/apt-key.gpg  
+    state: present
+     
+- name: Add kubernetes repo
+  lineinfile: 
+    path: /etc/apt/sources.list.d/kubernetes.list
+    line: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+
+- name: Update repo 
+  apt: 
+    update_cache: yes
+
+- name: Install kubeadm
+  apt: 
+    name: "{{ item }}"
+    state: install 
+  with_items: 
+    - kubelet
+    - kubeadm 
+    - kubectl 
+ 
+
+- name: Initilizing master node and it configures API server to communicate other components 
+  command: kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address={{ ansible_default_ipv4.address }}
+  register: in
+  run_once: true
+  delegate_to: "{{ groups['master'][0]}}"
+
+- name: Out of the initlized master
+  debug: msg={{ in }}
+
+- name: Create dir files  
+  command: "{{ item }}"
+  with_items: 
+    - "mkdir -p $HOME/.kube"
+    - "cp -i /etc/kubernetes/admin.conf $HOME/.kube/config"
+    - "chown $(id -u):$(id -g) $HOME/.kube/config"
+
+
+- name: Install a pod network add-on so that your pods can communicate with each other
+  command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml
+  run_once: true
+  delegate_to: "{{ groups['master'][0]}}"
+ 
+
+- name: Join worker node with master node
+  command: kubeadm join 10.150.0.2:6443 --token y2uf34.xxyjrjh8v4kdzrpe --discovery-token-ca-cert-hash sha256:dfa2b63302d7d53413b07c77a45a78f039c596aa3ee482850320174403556ac2
+  delegate_to: "{{ groups['nodes'][0]}}"
+  
+
