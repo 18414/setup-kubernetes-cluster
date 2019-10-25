@@ -1,0 +1,32 @@
+---
+- name: Update and install package on all nodes
+  apt: 
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items: 
+    - apt-transport-https 
+    - ca-certificates
+    - curl 
+    - software-properties-common
+   
+- name: Add GPG key on all nodes
+  command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+
+- name: add-apt-repository
+  apt_repository: 
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+
+- name: update repo 
+  apt: 
+    update_cache: yes
+
+- name: Install Kubernertes supported Docker version   
+  apt: 
+    name: "{{ item }}"  
+    state: installed
+  with_items: 
+    - docker-ce=17.03.2~ce-0~ubuntu-xenial
+    - apt-transport-https 
+    - curl
+    
