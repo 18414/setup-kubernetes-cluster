@@ -69,10 +69,13 @@
 
 - name: Create dir files  
   command: "{{ item }}"
+  run_once: true
   with_items: 
     - "mkdir -p $HOME/.kube"
     - "cp -i /etc/kubernetes/admin.conf $HOME/.kube/config"
     - "chown $(id -u):$(id -g) $HOME/.kube/config"
+  delegate_to: "{{ groups['master'][0]}}"
+  
 
 
 - name: Install a pod network add-on so that your pods can communicate with each other
@@ -82,7 +85,12 @@
  
 
 - name: Join worker node with master node
-  command: kubeadm join 10.150.0.2:6443 --token y2uf34.xxyjrjh8v4kdzrpe --discovery-token-ca-cert-hash sha256:dfa2b63302d7d53413b07c77a45a78f039c596aa3ee482850320174403556ac2
+  #command: kubeadm join {{ master_ip }}:6443 --token {{ token }} --discovery-token-ca-cert-hash {{ discovery_token }} 
+  shell: |
+    kubeadm join --token {{ token }} \
+                --discovery-token-unsafe-skip-ca-verification \
+                {{ master_ip }}:6443
+  register: join_clsuter
   delegate_to: "{{ groups['nodes'][0]}}"
   
 
