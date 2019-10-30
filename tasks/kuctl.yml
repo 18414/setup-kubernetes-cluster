@@ -1,0 +1,10 @@
+---
+- name: Install kubectl on master
+  tasks: 
+   - name: Install kubectl
+     yum: 
+       name: kubectl-1.14.0
+       state: present
+       allow_downgrade: yes
+     delegate_to: "{{ hostvars['master'] }}"
+   #  delegate_to: "{{ groups['master'][0] }}"
