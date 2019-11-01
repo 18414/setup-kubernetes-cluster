@@ -1,6 +1,4 @@
 ansible playbook to install kube
 https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-cluster-using-kubeadm-on-centos-7
 
-CentOS7 steps
-im
 https://www.linuxtechi.com/install-kubernetes-1-7-centos7-rhel7/
